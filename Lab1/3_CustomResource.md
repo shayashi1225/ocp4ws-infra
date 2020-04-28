@@ -5,9 +5,9 @@
 
 ### 3-1-1. Prometheus OperatorのCRDについて
 
-* v0.12.0から、Prometheus OperatorはKubernetes v1.7.x以上を使用する必要があります。   
-* 今回は「Prometheus Operator 0.27.0 provided by Red Hat」を利用しているため、Bug(coreos-prometheus-config-reloaderのMemory Limit)があるため、Work Arroundで回避します。(Prometheus Operator 0.29.0以上で解決)    
-* Prometheus OpearatorのCRDはAPIドキュメントを参考にしましょう。   
+* v0.12.0から、Prometheus OperatorはKubernetes v1.7.x以上を使用する必要があります。  
+* 今回は「Prometheus Operator 0.27.0 provided by Red Hat」を利用します。このバージョンは、Bug(coreos-prometheus-config-reloaderのMemory Limit)があるため、Work Arroundで回避する必要があります。(Prometheus Operator 0.29.0以上で解決)  
+* Prometheus OpearatorのCRDはAPIドキュメントを参考にしましょう。  
 https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md   
 
 Serviceの可視化設定をするときは、以下の手順で設定を行います。   
@@ -47,7 +47,7 @@ JMX Prometheus ExporterのServiceのラベル名(図は「app=jboss-eap-promethe
 
 -------
 
-「jmx-monitor-<User_ID>」プロジェクトの[Catalog]>[Intalled Operators]>[Prometheus Operator]を選択し、[Prometheus]タブの「Create Prometheus」から、以下の「Kind: Prometheus」を定義します。    
+「jmx-monitor-<User_ID>」プロジェクトの[Operators]>[Intalled Operators]>[Prometheus Operator]を選択し、[Prometheus]タブの「Create Prometheus」から、以下の「Kind: Prometheus」を定義します。    
 ※この際、Projectが「jmx-monitor-<User_ID>」であることを確認します。  
 
 ![Create Prometheus](images/create-prometheus.jpg "Create Prometheus")
@@ -120,8 +120,10 @@ Error from server (BadRequest): container "rules-configmap-reloader" in pod "pro
 ここではPodのログからエラーの理由を特定します。
 ```
 $ oc get event |grep Failed
-21m         Warning   Failed                pod/prometheus-monitoring-0                       Error: set memory limit 10485760 too low; should be at least 12582912
-21m         Warning   Failed                pod/prometheus-monitoring-1                       Error: set memory limit 10485760 too low; should be at least 12582912
+16m         Warning   Failed                pod/prometheus-monitoring-0                       Error: set memory limit 10485760 too low; should be at least 12582912
+15m         Warning   Failed                pod/prometheus-monitoring-0                       Error: the container name "k8s_rules-configmap-reloader_prometheus-monitoring-0_jmx-monitor-user1_7505074d-c3f3-4118-bee3-e140dbc0ffea_0" is already in use by "29d9249dd2c46751e63628562bf3839d3640c9c116f715983349e32e291c42f7". You have to remove that container to be able to reuse that name.: that name is already in use
+16m         Warning   Failed                pod/prometheus-monitoring-1                       Error: set memory limit 10485760 too low; should be at least 12582912
+15m         Warning   Failed                pod/prometheus-monitoring-1                       Error: the container name "k8s_rules-configmap-reloader_prometheus-monitoring-1_jmx-monitor-user1_56526754-95a1-4285-ab5f-64cdd54c9eb6_0" is already in use by "8060b043a62e1733731b8ac5f9af7c705bbe6dcc7e99d880d80ec240417e8678". You have to remove that container to be able to reuse that name.: that name is already in use
 
 $ oc describe pod/prometheus-monitoring-0 -n jmx-monitor-<User_ID>
 
@@ -147,12 +149,12 @@ $ oc get statefulset/prometheus-monitoring
 NAME                    READY   AGE
 prometheus-monitoring   0/2     125m
 ```
-ここでは「prometheus-config-reloader」のMemory Limitが10Miに設定されているため、コンテナが起動できない状態となっています。 PrometheusPodは、StatefulSetによって起動されているため、今回は一時的にStatefulSetの「prometheus-config-reloader」のResource Limitを引き上げて対応してみましょう。        
+ここでは「prometheus-configmap-reloader」のMemory Limitが10Miに設定されているため、コンテナが起動できない状態となっています。 PrometheusPodは、StatefulSetによって起動されているため、今回は一時的にStatefulSetの「prometheus-configmap-reloader」のResource Limitを引き上げて対応してみましょう。        
 
-#### VIEDITORで更新
+#### viエディタ(oc edit)で更新
 
 ```
-$ oc get statefulset/prometheus-monitoring -n jmx-monitor-<User_ID> -o=jsonpath='{.spec.template.spec.containers[2].args.resources.limits}' 
+$ oc get statefulset/prometheus-monitoring -n jmx-monitor-<User_ID> -o=jsonpath='{.spec.template.spec.containers[2].resources.limits}' 
 map[cpu:25m memory:10Mi]
 
 $ oc edit statefulset/prometheus-monitoring -n jmx-monitor-<User_ID>
@@ -176,7 +178,7 @@ prometheus-monitoring   2/2     137m
 ```
 
 Pod内の3つのコンテナが起動すれば、ワークアラウンドとしては解決です。    
-今回はあくまでワークアラウンドにて対応しましたが、「Prometheus Operator 0.29.0」以上では、prometheus-config-reloaderのデフォルトのMemory Limitが修正され、解決されています。   
+今回はあくまでワークアラウンドにて対応しましたが、「Prometheus Operator 0.29.0」以上では、prometheus-configmap-reloaderのデフォルトのMemory Limitが修正され、解決されています。   
 (参照):  https://github.com/coreos/prometheus-operator/pull/2403/
 
 ### 3-1-3. PrometheusのGUIを確認
@@ -206,7 +208,7 @@ Routerが接続できたら、ブラウザより確認を行ってください�
 Prometheus Operatorを配置した「JMX Monitor(jmx-monitor)」プロジェクトとアプリを配置した「JMX Exporter(jmx)」プロジェクト間のネットワークポリシーを設定します。    
 
 * 参照   
-https://docs.openshift.com/container-platform/3.11/architecture/additional_concepts/authorization.html
+https://docs.openshift.com/container-platform/4.3/authentication/understanding-authentication.html
 
 ここでは事前に、「JMX Monitor(jmx-monitor)」のPrometheus Operatorに設定したサービスアカウント(prometheus-k8s)に対して、「JMX Exporter(jmx)」プロジェクトに参照権限を付与しています。また、「JMX Exporter(jmx)」プロジェクトに対するPodネットワーク許可を追加しています。
 
@@ -232,7 +234,7 @@ using plugin: "redhat/openshift-ovs-networkpolicy", managing pod network is only
 | namespaceSelector | Selector to select which namespaces the Endpoints objects are discovered from. | [NamespaceSelector](https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#namespaceselector) | false |
 | sampleLimit | SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. | uint64 | false |
 
-「jmx-monitor」プロジェクトの[Catalog]>[Intalled Operators]>[Prometheus Operator]を選択し、[ServiceMonitor]タブの「Create ServiceMonitor」から、以下の「Kind: ServiceMonitor」を定義します。
+「jmx-monitor」プロジェクトの[Operators]>[Intalled Operators]>[Prometheus Operator]を選択し、[ServiceMonitor]タブの「Create ServiceMonitor」から、以下の「Kind: ServiceMonitor」を定義します。
 ※この際、Projectが「jmx-monitor-<User_ID>」であることを確認します。
 
 ![Create ServiceMonitor](images/create-servicemonitor.jpg "Create ServiceMonitor")
