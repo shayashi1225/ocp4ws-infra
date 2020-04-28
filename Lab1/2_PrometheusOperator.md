@@ -86,15 +86,15 @@ Automatic
     apiVersion: operators.coreos.com/v1alpha1
     kind: Subscription
     metadata:
-    name: prometheus
-    namespace: jmx-monitor-user1
+      name: prometheus
+      namespace: jmx-monitor-user1
     spec:
-    channel: beta
-    installPlanApproval: Manual
-    name: prometheus
-    source: community-operators
-    sourceNamespace: openshift-marketplace
-    startingCSV: prometheusoperator.0.27.0
+      channel: beta
+      installPlanApproval: Manual
+      name: prometheus
+      source: community-operators
+      sourceNamespace: openshift-marketplace
+      startingCSV: prometheusoperator.0.27.0
     ```
 
 3. インストールを適用します。
@@ -122,17 +122,17 @@ Automatic
     apiVersion: operators.coreos.com/v1alpha1
     kind: InstallPlan
     metadata:
-    creationTimestamp: "2020-04-28T02:11:21Z"
-    generateName: install-
-    generation: 1
-    name: install-w6f7r
-    namespace: jmx-monitor-user1
+      creationTimestamp: "2020-04-28T02:11:21Z"
+      generateName: install-
+      generation: 1
+      name: install-w6f7r
+      namespace: jmx-monitor-user1
     ：
     spec:
-    approval: Manual
-    approved: false                           <-ここを”true”にする
-    clusterServiceVersionNames:
-    - prometheusoperator.0.27.0
+      approval: Manual
+      approved: false                           <-ここを”true”にする
+      clusterServiceVersionNames:
+      - prometheusoperator.0.27.0
     :
 
     ```
