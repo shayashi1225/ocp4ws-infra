@@ -45,10 +45,10 @@ $ mkdir $PGOROOT/my-pgo-client
 >**PGOROOTが未指定の場合のみ** 以下を実行します。  
 >
 >```
->cat <<EOF >> $HOME/.bashrc
+>$ cat <<EOF >> $HOME/.bashrc
 >export PGOROOT=$HOME/postgres-operator
 >EOF
->source $HOME/.bashrc
+>$ source $HOME/.bashrc
 >```
 
 ### 2-2-2. pgo実行時に使用する接続先情報(apiserverのURL)を指定
@@ -73,10 +73,10 @@ $ export PGO_APISERVER_URL=https://a6615bd17b98011e992ee0e4cddef59e-1242048699.a
 .bashrcに "PGO_APISERVER_URL" を追記しておきます。
 
 ```
-cat <<EOF >> $HOME/.bashrc
+$ cat <<EOF >> $HOME/.bashrc
 export PGO_APISERVER_URL=https://a6615bd17b98011e992ee0e4cddef59e-1242048699.ap-northeast-1.elb.amazonaws.com:8443
 EOF
-source $HOME/.bashrc
+$ source $HOME/.bashrc
 ```
 
 ### 2-2-3. pgo実行時に使用するクレデンシャルをOperator Podのapiserverから取得
@@ -128,12 +128,12 @@ server.crt  server.key
 .bashrcに 証明書関係のファイル群 を追記しておきます。
 
 ```
-cat <<EOF >> $HOME/.bashrc
+$ cat <<EOF >> $HOME/.bashrc
 export PGO_CA_CERT=$PGOROOT/my-pgo-client/server.crt
 export PGO_CLIENT_CERT=$PGOROOT/my-pgo-client/server.crt
 export PGO_CLIENT_KEY=$PGOROOT/my-pgo-client/server.key
 EOF
-source $HOME/.bashrc
+$ source $HOME/.bashrc
 ```
 
 ### 2-2-4. pgo実行時に使用するユーザー情報を作成
@@ -148,10 +148,10 @@ $ export PGOUSER=$PGOROOT/my-pgo-client/pgouser
 .bashrcに "PGOUSER" を追記しておきます。
 
 ```
-cat <<EOF >> $HOME/.bashrc
+$ cat <<EOF >> $HOME/.bashrc
 export PGOUSER=$PGOROOT/my-pgo-client/pgouser
 EOF
-source $HOME/.bashrc
+$ source $HOME/.bashrc
 ```
 
 ### 2-2-5. 各変数のexport確認
@@ -343,8 +343,9 @@ $ pgo ls mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log
 
 total 60K
 -rw-------. 1 postgres root 53K Aug  5 05:28 postgresql-Mon.log
+```
 
-
+```
 $ pgo cat mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log/<logファイル名> | tail -3
 
 2019-08-05 05:29:38 UTC [1022]: [3-1] user=postgres,db=postgres,app=psql,client=[local]LOG:  duration: 0.279 ms
