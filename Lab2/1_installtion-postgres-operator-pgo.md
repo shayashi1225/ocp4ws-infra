@@ -103,10 +103,10 @@ $ pwd
 .bashrcに "PGOROOT" を追記しておきましょう。  
 
 ```
-cat <<EOF >> $HOME/.bashrc
+$ cat <<EOF >> $HOME/.bashrc
 export PGOROOT=$HOME/postgres-operator
 EOF
-source $HOME/.bashrc
+$ source $HOME/.bashrc
 ```
 
 >Tips:  
@@ -151,6 +151,14 @@ $ oc create secret generic -n pgo-<User_ID> pgo-backrest-repo-config \
 上記のようにバックスラッシュ (**"\"**) を入れることで改行し，多数のオプションを付与してコマンド実行しています。
 ```
 
+pgoコマンド実行用のSecretを作成します。
+```
+$ export PGO_CMD=oc
+$ $PGOROOT/deploy/install-bootstrap-creds.sh
+secret/pgorole-pgoadmin created
+secret/pgouser-pgoadmin created
+```
+
 >**※注意: ワークショップ参加者の方は，必ず自身に割当てられた <User_ID> を使用して，Namespaceオプションで `-n pgo-user18` のように指定してください。**  
 >
 >
@@ -164,30 +172,35 @@ $ oc create secret generic -n pgo-<User_ID> pgo-backrest-repo-config \
 >  --from-file=aws-s3-ca.crt=$PGOROOT/conf/pgo-backrest-repo/aws-s3-ca.crt
 >
 >secret/pgo-backrest-repo-config created
+>
+>$ export PGO_CMD=oc
+>
+>$ $PGOROOT/deploy/install-bootstrap-creds.sh
+>secret/pgorole-pgoadmin created
+>secret/pgouser-pgoadmin created
 >```
 >
->実行イメージ図)
 >
->![](images/ocp4-i-lab2-1-create-secret.png)
->
->作成したSecret (`pgo-backrest-repo-config`) が存在するか確認してみましょう。
+>作成したSecret (`pgo-backrest-repo-config`,`pgorole-pgoadmin`,`pgouser-pgoadmin`) が存在するか確認してみましょう。
 >
 >```
 >$ oc get secret -n pgo-user18
 >
->NAME                       TYPE                                  DATA   AGE
->builder-dockercfg-zslcx    kubernetes.io/dockercfg               1      54s
->builder-token-5c84k        kubernetes.io/service-account-token   4      54s
->builder-token-fdrjm        kubernetes.io/service-account-token   4      54s
->default-dockercfg-7csct    kubernetes.io/dockercfg               1      54s
->default-token-hwf5d        kubernetes.io/service-account-token   4      54s
->default-token-zpx46        kubernetes.io/service-account-token   4      54s
->deployer-dockercfg-spqcl   kubernetes.io/dockercfg               1      54s
->deployer-token-mhpbl       kubernetes.io/service-account-token   4      54s
->deployer-token-xlvq8       kubernetes.io/service-account-token   4      54s
->pgo-backrest-repo-config   Opaque                                4      50s
+>NAME                                TYPE                                  DATA   AGE
+>builder-dockercfg-dk7mn             kubernetes.io/dockercfg               1      54m
+>builder-token-5h5mg                 kubernetes.io/service-account-token   4      54mAGE
+>･･･
+>pgo-backrest-repo-config            Opaque                                4      54m
+>pgorole-pgoadmin                    Opaque                                2      33m
+>pgouser-pgoadmin                    Opaque                                3      33m>
 >```
 >
+
+1-3-3. security context constraint(SCC)を適用します。
+```
+$ oc create -f $PGOROOT/deploy/pgo-scc.yaml -n pgo-user1
+securitycontextconstraints.security.openshift.io/pgo created
+```
 
 ## 1-4. Operatorをインストール
 ### 1-4-1. ブラウザからOpenShift4コンソールにログイン
@@ -214,19 +227,19 @@ Privacy Errorが出た場合は，[Advanced] > [Proceed to oauth-openshift.apps.
 ![](images/ocp4-i-lab2-1-console-login-user-pw.png)
 
 ### 1-4-2. OperatorHubからPostgres Operatorをインストール
-OperatorHubから，Postgres Operator ("Crunchy PostgresSQL Enterprise")をインストールします。  
+OperatorHubから，Postgres Operator ("Crunchy PostgresSQL for OpenShift (Community)")をインストールします。  
 
-[Catalog]>[OperatorHub]から，[Crunchy PostgreSQL Enterprise (Community)]を開きます。
+[Operators]>[OperatorHub]から，[Crunchy PostgreSQL for OpenShift (Community)]を開きます。
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-focus.png)
 
 >**注意: 必ず自身のプロジェクト(`pgo-<User_ID>`)が選択されていることを確認してください。**
 
-[Continue]を選択します。
+[Continue]を選択します。  
 
-![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-continue.png)
+<img src="images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-continue.png" width="300x900">
 
-[Install]とを選択します。
+[Install]とを選択します。  
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-install.png)
 
@@ -234,12 +247,12 @@ Operator Subscriptionを作成します。
 
 - Installation Mode: `A specific namespace on cluster` (デフォルト)
 - Namespace: `pgo-<User_ID>` (自身のプロジェクト名を選択)
-- Update Channel: `alpha` (デフォルト)
+- Update Channel: `stable` (デフォルト)
 - Approval Strategy: `Manual` 
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-subscribe.png)
 
-以下図に遷移したら，少し待ちます。 
+以下図に遷移したら，[postgresql]を選択します。 
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-subs-overview.png)
 
@@ -259,7 +272,7 @@ Operator Subscriptionを作成します。
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-subs-result.png)
 
-[Catalog]>[Installed Operators]を開き，[Crunchy PostgreSQL Enterprise]の "STATUS" 欄が "InstallSucceeded" になるのを確認します。
+[Operators]>[Installed Operators]を開き，[Crunchy PostgreSQL for OpenShift]の "STATUS" 欄が "Succeeded" になるのを確認します。
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-subs-confirm-installed.png)
 
@@ -342,7 +355,7 @@ $ oc get po -n pgo-<User_ID>
 
 OpenShift4コンソールからもPodやコンテナを確認してみましょう。
 
-[Workloads]>[Pods]>[postgres-operator-xxxx-xxx]を開くと，Podに3つのコンテナが含まれる様子や，YAML定義，リソース利用状況などが確認できます。
+[Workloads]>[Pods]>[postgres-operator-xxxx-xxx]を開くと，Podに4つのコンテナが含まれる様子や，YAML定義，リソース利用状況などが確認できます。
 
 ![](images/ocp4-i-lab2-1-Catalog-OperatorHub-Postgres-confirm-Pods.png)  
 

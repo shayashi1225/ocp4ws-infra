@@ -22,6 +22,7 @@ pgoは，Postgres Operatorを操作・制御するためのクライアント用
 > - pgoコマンドのダウンロード
 >   - Postgres Operatorのバージョンと一致したpgoを取得してください。(https://github.com/CrunchyData/postgres-operator/releases)
 
+
 ## 2-2. pgoクライアントの構成
 pgoコマンドを使って，クライアント端末(踏み台サーバー)からOperator Podに含まれるapiserverコンテナに接続するための準備を行います。
 
@@ -139,7 +140,7 @@ source $HOME/.bashrc
 pgo実行時に使用するユーザー情報(PGOUSER)を作成します。
 
 ```
-$ echo username:password > $PGOROOT/my-pgo-client/pgouser
+$ echo pgoadmin:examplepassword＄ > $PGOROOT/my-pgo-client/pgouser
 $ chmod 700 $PGOROOT/my-pgo-client/pgouser
 $ export PGOUSER=$PGOROOT/my-pgo-client/pgouser
 ```
@@ -177,10 +178,9 @@ export PGOUSER=/home/user18/postgres-operator/my-pgo-client/pgouser
 pgoコマンドを実行して接続確認します。
 
 ```
-pgo version
-
-pgo client version 4.0.1
-pgo-apiserver version 4.0.1
+$ pgo version
+pgo client version 4.2.2
+pgo-apiserver version 4.2.2
 ```
 
 上記のように出力されれば成功です。  
@@ -202,14 +202,23 @@ pgoから様々なリソースを制御してみましょう。
 PostgreSQLクラスターを作成します。
 
 ```
-pgo create cluster mycluster -n pgo-<User_ID>
-pgo show cluster mycluster -n pgo-<User_ID>
+$ pgo create cluster mycluster -n pgo-<User_ID>
+$ pgo show cluster mycluster -n pgo-<User_ID>
+cluster : mycluster (crunchy-postgres-ha:centos7-12.2-4.2.2)
+	pod : mycluster-6785d8c99c-9xt8c (Running) on ip-10-0-150-8.ap-southeast-1.compute.internal (1/1) (primary)
+	pvc : mycluster
+	resources : CPU Limit= Memory Limit=, CPU Request= Memory Request=
+	storage : Primary=1G Replica=1G
+	deployment : mycluster
+	deployment : mycluster-backrest-shared-repo
+	service : mycluster - ClusterIP (172.30.129.224)
+	labels : crunchy-pgbadger=false name=mycluster pgo-backrest=true pgo-version=4.2.2 autofail=true pg-pod-anti-affinity= pgouser=pgoadmin archive-timeout=60 current-primary=mycluster deployment-name=mycluster workflowid=23611427-8f78-432c-ab4c-3d29488764a7 crunchy-pgha-scope=mycluster crunchy_collect=false pg-cluster=mycluster 
 ```
 
 Pgclusterリソースを確認します。
 
 ```
-oc get Pgclusters -n pgo-<User_ID>
+$ oc get Pgclusters -n pgo-<User_ID>
 
 NAME        AGE
 mycluster   17m
@@ -218,7 +227,7 @@ mycluster   17m
 Postgres関連のPodを確認します。
 
 ```
-oc get pods -n pgo-<User_ID>
+$ oc get pods -n pgo-<User_ID>
     mycluster-6c5b4ddc6-qq5zg                         1/1     Running     0          5m13s
     mycluster-backrest-shared-repo-668554dc6c-mvbjg   1/1     Running     0          5m13s
     mycluster-stanza-create-bh6lf                     0/1     Completed   0          4m6s
@@ -228,33 +237,30 @@ oc get pods -n pgo-<User_ID>
 Postgresの動作を確認します。
 
 ```
-pgo test mycluster -n pgo-<User_ID>
+$ pgo test mycluster -n pgo-<User_ID>
 
-    cluster : mycluster
-	    psql -p 5432 -h 172.30.254.147 -U postgres postgres is Working
-	    psql -p 5432 -h 172.30.254.147 -U postgres userdb is Working
-	    psql -p 5432 -h 172.30.254.147 -U primaryuser postgres is Working
-	    psql -p 5432 -h 172.30.254.147 -U primaryuser userdb is Working
-	    psql -p 5432 -h 172.30.254.147 -U testuser postgres is Working
-	    psql -p 5432 -h 172.30.254.147 -U testuser userdb is Working
+cluster : mycluster
+	Services
+		primary (172.30.129.224:5432): UP
+	Instances
+		primary (mycluster-6785d8c99c-9xt8c): UP
 ```
 
 Serviceを確認します。
 
 ```
-oc get svc -n pgo-<User_ID>
-
+$ oc get svc -n pgo-<User_ID>
 NAME                             TYPE           CLUSTER-IP       EXTERNAL-IP                                                                   PORT(S)                                         AGE
-mycluster                        ClusterIP      172.30.254.147   <none>                                                                        5432/TCP,9100/TCP,10000/TCP,2022/TCP,9187/TCP   7m49s
-mycluster-backrest-shared-repo   ClusterIP      172.30.224.82    <none>                                                                        2022/TCP                                        7m49s
-postgres-operator                LoadBalancer   172.30.77.27     a8a59cbf2b73d11e99d19066aaaf6145-115501653.ap-northeast-1.elb.amazonaws.com   8443:30861/TCP                                  26m
+mycluster                        ClusterIP      172.30.129.224   <none>                                                                        5432/TCP,10000/TCP,2022/TCP,9187/TCP,8009/TCP   6m14s
+mycluster-backrest-shared-repo   ClusterIP      172.30.39.24     <none>                                                                        2022/TCP                                        6m14s
+postgres-operator                LoadBalancer   172.30.12.20     aa67523c7e9294d119cab821c9be8aec-698297649.ap-southeast-1.elb.amazonaws.com   8443:31397/TCP                                  27m
 ```
 
 ### 2-4-2. Postgresをスケーリング
 PgreplicasリソースでPodを追加します。
 
 ```
-pgo scale mycluster -n pgo-<User_ID>
+$ pgo scale mycluster -n pgo-<User_ID>
 
 WARNING: Are you sure? (yes/no): yes
 created Pgreplica mycluster-hrbx
@@ -263,7 +269,7 @@ created Pgreplica mycluster-hrbx
 Pgreplicasリソースを確認します。
 
 ```
-oc get Pgreplicas -n pgo-<User_ID>
+$ oc get Pgreplicas -n pgo-<User_ID>
 
 NAME             AGE
 mycluster-hrbx   8m45s
@@ -272,13 +278,14 @@ mycluster-hrbx   8m45s
 PostgresのReplica Podを確認します。
 
 ```
-oc get pods -n pgo-<User_ID>
+$ oc get pods -n pgo-<User_ID>
 NAME                                              READY   STATUS      RESTARTS   AGE
-mycluster-6c5b4ddc6-qq5zg                         1/1     Running     0          10m
-mycluster-backrest-shared-repo-668554dc6c-mvbjg   1/1     Running     0          10m
-mycluster-hrbx-7d9f8b569b-mvfb6                   1/1     Running     0          67s
-mycluster-stanza-create-bh6lf                     0/1     Completed   0          9m46s
-postgres-operator-9777dbc48-59kms                 3/3     Running     0          31m
+backrest-backup-mycluster-9d2p9                   0/1     Completed   0          4m57s
+mycluster-6785d8c99c-9xt8c                        1/1     Running     0          6m10s
+mycluster-backrest-shared-repo-86bf47d99f-cl5wd   1/1     Running     0          6m10s
+mycluster-stanza-create-4bn48                     0/1     Completed   0          5m17s
+mycluster-xnku-6cf8c7785b-wsq6h                   1/1     Running     0          68s
+postgres-operator-5866849c9f-t2rmj                4/4     Running     0          31m
 ```
 
 ### 2-4-3. その他
@@ -286,13 +293,13 @@ postgres-operator-9777dbc48-59kms                 3/3     Running     0         
 Postgresのバックアップを確認します。
 
 ```
-pgo backup mycluster -n pgo-<User_ID>
+$ pgo-<User_ID>
 
 created Pgtask backrest-backup-mycluster
 ```
 
 ```
-oc get Pgtask -n pgo-<User_ID>
+$ oc get Pgtask -n pgo-<User_ID>
 
 NAME                        AGE
 backrest-backup-mycluster   9s
@@ -301,14 +308,14 @@ mycluster-stanza-create     52m
 ```
 
 ```
-pgo backup mycluster --backup-type=pgbasebackup -n pgo-<User_ID>
+$ pgo backup mycluster --backup-type=pgbasebackup -n pgo-<User_ID>
 
 created backup Job for mycluster
 workflow id 2176b3ad-9666-41bd-91df-081f911493f0
 ```
 
 ```
-oc get Pgtask -n pgo-<User_ID>
+$ oc get Pgtask -n pgo-<User_ID>
 
 NAME                        AGE
 backrest-backup-mycluster   91s
@@ -318,41 +325,27 @@ mycluster-stanza-create     53m
 ```
 
 ```
-oc get pods -n pgo-<User_ID>
+$ oc get pods -n pgo-<User_ID>
 
 NAME                                              READY   STATUS              RESTARTS   AGE
-backrest-backup-mycluster-6mmcg                   0/1     Completed           0          103s
-backup-mycluster-cqdj-qwzl7                       0/1     ContainerCreating   0          14s
-mycluster-6c5b4ddc6-qq5zg                         1/1     Running             0          54m
-mycluster-backrest-shared-repo-668554dc6c-mvbjg   1/1     Running             0          54m
-mycluster-hrbx-7d9f8b569b-mvfb6                   1/1     Running             0          45m
-mycluster-stanza-create-bh6lf                     0/1     Completed           0          53m
-postgres-operator-9777dbc48-59kms                 3/3     Running             0          75m
-```
-
-```
-oc get pods -n pgo-<User_ID>
-
-NAME                                              READY   STATUS      RESTARTS   AGE
-backrest-backup-mycluster-6mmcg                   0/1     Completed   0          2m21s
-backup-mycluster-cqdj-qwzl7                       0/1     Completed   0          52s
-mycluster-6c5b4ddc6-qq5zg                         1/1     Running     0          55m
-mycluster-backrest-shared-repo-668554dc6c-mvbjg   1/1     Running     0          55m
-mycluster-hrbx-7d9f8b569b-mvfb6                   1/1     Running     0          45m
-mycluster-stanza-create-bh6lf                     0/1     Completed   0          54m
-postgres-operator-9777dbc48-59kms                 3/3     Running     0          75m
+backrest-backup-mycluster-zwkjc                   0/1     Completed   0          2m7s
+mycluster-6785d8c99c-9xt8c                        1/1     Running     0          9m3s
+mycluster-backrest-shared-repo-86bf47d99f-cl5wd   1/1     Running     0          9m3s
+mycluster-stanza-create-4bn48                     0/1     Completed   0          8m10s
+mycluster-xnku-6cf8c7785b-wsq6h                   1/1     Running     0          4m1s
+postgres-operator-5866849c9f-t2rmj                4/4     Running     0          34m
 ```
 
 ログを確認します。
 
 ```
-pgo ls mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log
+$ pgo ls mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log
 
 total 60K
 -rw-------. 1 postgres root 53K Aug  5 05:28 postgresql-Mon.log
 
 
-pgo cat mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log/postgresql-Mon.log | tail -3
+$ pgo cat mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log/<logファイル名> | tail -3
 
 2019-08-05 05:29:38 UTC [1022]: [3-1] user=postgres,db=postgres,app=psql,client=[local]LOG:  duration: 0.279 ms
 2019-08-05 05:29:38 UTC [1022]: [4-1] user=postgres,db=postgres,app=psql,client=[local]LOG:  disconnection: session time: 0:00:00.002 user=postgres database=postgres host=[local]
@@ -361,7 +354,7 @@ pgo cat mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log/postgresql-Mon.log |
 PVCに対するPostgresの利用状況を確認します。
 
 ```
-pgo df mycluster -n pgo-<User_ID>
+$ pgo df mycluster -n pgo-<User_ID>
 
 POD                       STATUS    PGSIZE    CAPACITY  PCTUSED
 
