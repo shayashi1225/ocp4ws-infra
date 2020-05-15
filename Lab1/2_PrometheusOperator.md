@@ -67,78 +67,7 @@ Automatic
 
 これで、Prometheus OperatorのSubscriptionが作成されました。なおこの時点では、CRDの登録やPrometheus Operatorの配置が行われるだけで、Prometheusのプロセス自体は構築されません。
 
-### 2-2-3. Prometheus Operator 0.27.0のインストール
-
-この後の演習でトラブルシューティングを行うために、意図的にバグを含んでいる古いバージョン（0.27.0）のPrometheus Operatorをインストールします。
-
-1. 先ほどインストールした最新のOperatorをアンインストールします。[Operators]-[Installed Operators]で表示されるPrometheus Operatorから[Unistall Operator]を選択します。その後[Remove]を選択します。
-
-    ![uninstall_prometheus-operator](images/uninstall_prometheus-operator.jpg "uninstall_prometheus-operator")
-    <img src="images/uninstall_prometheus-operator_pop.jpg" width="300x900">
-
-
-2. prometheus-oprtr-0.27.0.yamlファイルをサーバ上で作成します。
-    ```sh
-    $ vi prometheus-oprtr-0.27.0.yaml
-    ```
-
-    ```yaml
-    apiVersion: operators.coreos.com/v1alpha1
-    kind: Subscription
-    metadata:
-      name: prometheus
-      namespace: jmx-monitor-user1
-    spec:
-      channel: beta
-      installPlanApproval: Manual
-      name: prometheus
-      source: community-operators
-      sourceNamespace: openshift-marketplace
-      startingCSV: prometheusoperator.0.27.0
-    ```
-
-3. インストールを適用します。
-
-    ```sh
-    $ oc apply -f prometheus-optr-subs.yaml
-    subscription.operators.coreos.com/prometheus created
-    ```
-
-4. インストール承認をマニュアルに設定していたので、承認(`oc edit installplan`でapprovedを"true"に編集して保存)を行います。
-
-    ```sh
-    $ oc get installplan
-    NAME            CSV                         APPROVAL   APPROVED
-    install-w6f7r   prometheusoperator.0.27.0   Manual     false
-
-    $ oc edit installplan
-    ```
-
-    ```yaml
-    # Please edit the object below. Lines beginning with a '#' will be ignored,
-    # and an empty file will abort the edit. If an error occurs while saving this file will be
-    # reopened with the relevant failures.
-    #
-    apiVersion: operators.coreos.com/v1alpha1
-    kind: InstallPlan
-    metadata:
-      creationTimestamp: "2020-04-28T02:11:21Z"
-      generateName: install-
-      generation: 1
-      name: install-w6f7r
-      namespace: jmx-monitor-user1
-    ：
-    spec:
-      approval: Manual
-      approved: false                           <-ここを”true”にする
-      clusterServiceVersionNames:
-      - prometheusoperator.0.27.0
-    :
-
-    ```
-
-
-### 2-2-4. CRD/Operatorの確認    
+### 2-2-3. CRD/Operatorの確認    
 
 Prometheus OperatorのSubscriptionを作成すると、CRD(Custom Resource Definition)が作成される。
 

@@ -140,7 +140,7 @@ $ source $HOME/.bashrc
 pgo実行時に使用するユーザー情報(PGOUSER)を作成します。
 
 ```
-$ echo pgoadmin:examplepassword＄ > $PGOROOT/my-pgo-client/pgouser
+$ echo pgoadmin:examplepassword > $PGOROOT/my-pgo-client/pgouser
 $ chmod 700 $PGOROOT/my-pgo-client/pgouser
 $ export PGOUSER=$PGOROOT/my-pgo-client/pgouser
 ```
@@ -293,7 +293,7 @@ postgres-operator-5866849c9f-t2rmj                4/4     Running     0         
 Postgresのバックアップを確認します。
 
 ```
-$ pgo-<User_ID>
+$ pgo backup mycluster -n pgo-<User_ID>
 
 created Pgtask backrest-backup-mycluster
 ```
@@ -308,32 +308,33 @@ mycluster-stanza-create     52m
 ```
 
 ```
-$ pgo backup mycluster --backup-type=pgbasebackup -n pgo-<User_ID>
-
-created backup Job for mycluster
-workflow id 2176b3ad-9666-41bd-91df-081f911493f0
+$ pgo backup mycluster --backup-type=pgbackrest -n pgo-<User_ID>
+created Pgtask backrest-backup-mycluster
 ```
 
 ```
 $ oc get Pgtask -n pgo-<User_ID>
 
 NAME                        AGE
-backrest-backup-mycluster   91s
-mycluster-backupworkflow    5s
-mycluster-createcluster     54m
-mycluster-stanza-create     53m
+backrest-backup-mycluster   11s
+backup-mycluster-pgdump     5m3s
+mycluster-createcluster     48m
+mycluster-stanza-create     47m
 ```
 
 ```
 $ oc get pods -n pgo-<User_ID>
 
-NAME                                              READY   STATUS              RESTARTS   AGE
-backrest-backup-mycluster-zwkjc                   0/1     Completed   0          2m7s
-mycluster-6785d8c99c-9xt8c                        1/1     Running     0          9m3s
-mycluster-backrest-shared-repo-86bf47d99f-cl5wd   1/1     Running     0          9m3s
-mycluster-stanza-create-4bn48                     0/1     Completed   0          8m10s
-mycluster-xnku-6cf8c7785b-wsq6h                   1/1     Running     0          4m1s
-postgres-operator-5866849c9f-t2rmj                4/4     Running     0          34m
+NAME                                              READY   STATUS      RESTARTS   AGE
+backrest-backup-mycluster-jqbwp                   0/1     Completed   0          6m37s
+backup-mycluster-pgdump-rbzg-zb2r5                0/1     Completed   0          2m16s
+mycluster-backrest-shared-repo-86bf47d99f-45msj   1/1     Running     0          45m
+mycluster-c48b74f85-ksbhp                         1/1     Running     0          45m
+mycluster-hzfj-57ccd7575b-cg6jd                   1/1     Running     0          10m
+mycluster-stanza-create-vv9mr                     0/1     Completed   0          44m
+postgres-operator-b7dcb4d8c-kt7mv                 4/4     Running     1          54m
+postgresql-1-deploy                               0/1     Completed   0          32m
+postgresql-1-z9zkg                                1/1     Running     0          32m
 ```
 
 ログを確認します。

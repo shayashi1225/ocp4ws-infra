@@ -72,8 +72,9 @@ Postgres Operatorを展開することで，以下の機能をK8sクラスター
 GitHubから Postgres-Operatorプロジェクトをクローンします。  
 
 ```
-$ git clone https://github.com/capsmalt/postgres-operator.git
+$ git clone https://github.com/CrunchyData/postgres-operator.git
 $ cd postgres-operator
+$ git checkout v4.2.2
 $ ls
 
 Gopkg.lock         PULL_REQUEST_TEMPLATE.md  apiservermsgs  controller        operator              redhat   util
@@ -192,7 +193,7 @@ secret/pgouser-pgoadmin created
 >･･･
 >pgo-backrest-repo-config            Opaque                                4      54m
 >pgorole-pgoadmin                    Opaque                                2      33m
->pgouser-pgoadmin                    Opaque                                3      33m>
+>pgouser-pgoadmin                    Opaque                                3      33m
 >```
 >
 
