@@ -38,7 +38,7 @@ Using project "jmx-monitor-<User_ID>" on server "https://<OpenShift API>".
 ![OperatorHub](images/operator-hub.jpg "operator-hub")
 
 OperatorHubの中から、Prometheus Operator(Community)を選択して、[Install]を行う。        
-※コミュニティ版を利用すると、警告が表示されるので、一旦[Continue]で続ける。(OCP 4.3現在)    
+※コミュニティ版を利用すると、警告が表示されるので、一旦[Continue]で続ける。(OCP 4.4現在)    
      
 ![Prometheus Operator](images/prometheus-operator.jpg "prometheus-operator")
 

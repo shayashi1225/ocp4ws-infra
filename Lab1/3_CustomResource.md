@@ -91,7 +91,7 @@ spec:
 $ oc get pod -n jmx-monitor-<User_ID>
 NAME                                   READY   STATUS    RESTARTS   AGE
 prometheus-monitoring-0                3/3     Running   1          43s
-prometheus-monitoring-1                2/3     Running   1          43s
+prometheus-monitoring-1                3/3     Running   1          43s
 prometheus-operator-8587659c9b-5z7md   1/1     Running   0          15m
 ```
 

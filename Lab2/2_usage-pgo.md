@@ -308,8 +308,8 @@ mycluster-stanza-create     52m
 ```
 
 ```
-$ pgo backup mycluster --backup-type=pgbackrest -n pgo-<User_ID>
-created Pgtask backrest-backup-mycluster
+$ pgo backup mycluster --backup-type=pgdump -n pgo-<User_ID>
+created Pgtask backup-mycluster-pgdump
 ```
 
 ```
@@ -333,8 +333,6 @@ mycluster-c48b74f85-ksbhp                         1/1     Running     0         
 mycluster-hzfj-57ccd7575b-cg6jd                   1/1     Running     0          10m
 mycluster-stanza-create-vv9mr                     0/1     Completed   0          44m
 postgres-operator-b7dcb4d8c-kt7mv                 4/4     Running     1          54m
-postgresql-1-deploy                               0/1     Completed   0          32m
-postgresql-1-z9zkg                                1/1     Running     0          32m
 ```
 
 ログを確認します。
@@ -349,8 +347,9 @@ total 60K
 ```
 $ pgo cat mycluster -n pgo-<User_ID> /pgdata/mycluster/pg_log/<logファイル名> | tail -3
 
-2019-08-05 05:29:38 UTC [1022]: [3-1] user=postgres,db=postgres,app=psql,client=[local]LOG:  duration: 0.279 ms
-2019-08-05 05:29:38 UTC [1022]: [4-1] user=postgres,db=postgres,app=psql,client=[local]LOG:  disconnection: session time: 0:00:00.002 user=postgres database=postgres host=[local]
+2020-05-18 02:08:27.062 UTC [205] LOG:  database system was shut down at 2020-05-18 02:08:26 UTC
+2020-05-18 02:08:27.062 UTC [206] FATAL:  the database system is starting up
+2020-05-18 02:08:27.134 UTC [202] LOG:  database system is ready to accept connections
 ```
 
 PVCに対するPostgresの利用状況を確認します。
